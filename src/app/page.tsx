@@ -20,21 +20,8 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen bg-[#0F0F10] text-neutral-50">
-      {/* 四隅ナビゲーション（住所表記なし） */}
+      {/* 四隅ナビゲーション（左上ブランドは削除） */}
       <div className="pointer-events-none fixed inset-0 z-30">
-        {/* 左上 ブランドロゴ */}
-        <div className="pointer-events-auto absolute left-4 top-4 md:left-8 md:top-8">
-          <Link
-            href="/"
-            className="border-l-2 border-red-600/80 pl-2 text-[10px] font-semibold tracking-[0.24em] text-neutral-100 md:text-xs"
-          >
-            <div className="leading-tight">AUTO COLLECTION</div>
-            <div className="text-sm tracking-[0.18em] md:text-base">
-              BONDAGE
-            </div>
-          </Link>
-        </div>
-
         {/* 右上 MENU ダミー */}
         <div className="pointer-events-auto absolute right-4 top-4 text-[10px] font-medium tracking-[0.22em] text-neutral-200 md:right-8 md:top-8 md:text-xs">
           <span>MENU</span>{" "}
@@ -69,7 +56,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 在庫車トップ HERO（カードを大きく + 推し在庫表示） */}
+        {/* 在庫車トップ HERO（カード大 + 推し在庫表示） */}
         <section className="flex min-h-[380px] flex-col justify-between rounded-3xl border border-red-900/50 bg-gradient-to-b from-neutral-900/80 via-black/80 to-neutral-900/70 p-6 shadow-[0_0_40px_rgba(0,0,0,0.7)] md:min-h-[440px] md:p-8">
           {/* ラベル行 */}
           <div className="flex items-baseline justify-between gap-3">
