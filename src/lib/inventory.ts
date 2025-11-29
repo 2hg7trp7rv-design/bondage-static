@@ -1,39 +1,52 @@
 // src/lib/inventory.ts
 import inventoryData from "@/data/inventory.json";
 
-export type InventoryStatus = "stock" | "sold" | "coming_soon";
-
-export type InventoryCategory =
-  | "kei"
-  | "domestic"
-  | "import"
-  | "truck"
-  | "sports"
-  | "suv"
-  | "other";
+export type InventoryStatus = "available" | "reserved" | "sold";
 
 export type InventoryItem = {
   id: string;
-  title: string;
+  slug: string;
+
+  /**
+   * 管理用のタイトル（任意）。
+   * 未指定の場合は displayName をそのまま使う。
+   */
+  title?: string;
+
+  /**
+   * 車種カテゴリー（例: "KEI_TRUCK", "SUPERCAR" など）
+   * まだ決めきれていないので任意にしておく。
+   */
+  category?: string;
+
+  /**
+   * カードに大きく表示する「一言キャッチ」。
+   * JSON の displayName と 1:1 で対応。
+   */
+  displayName: string;
+
   maker: string;
-  category: InventoryCategory;
+  model: string;
+  year: number;
+  grade: string;
+  priceYen: number;
+  mileageKm: number;
+  color: string;
   status: InventoryStatus;
-  grade?: string;
-  year?: number;
-  mileageKm?: number;
-  color?: string;
-  priceYen?: number;
-  transmission?: string;
-  drive?: string;
-  image?: string;
-  tags?: string[];
-  catchCopy?: string;
-  shortDescription?: string;
-  lifestyleNote?: string;
+  tags: string[];
+  thumbnailUrl: string;
+  shortDescription: string;
+  lifestyleNote: string;
 };
 
-// inventory.json をそのまま型付けして扱う
-const inventory = inventoryData as InventoryItem[];
+// inventory.json を型付きで扱う。
+// title が無い場合は displayName をタイトルとして補完。
+const inventory: InventoryItem[] = (inventoryData as InventoryItem[]).map(
+  (item) => ({
+    ...item,
+    title: item.title ?? item.displayName,
+  })
+);
 
 /**
  * 在庫車を全件取得
@@ -43,25 +56,17 @@ export function getAllInventory(): InventoryItem[] {
 }
 
 /**
- * ステータスごとにフィルタ
+ * slug から 1 台取得
  */
-export function getInventoryByStatus(status: InventoryStatus): InventoryItem[] {
-  return inventory.filter((car) => car.status === status);
+export function getInventoryBySlug(slug: string): InventoryItem | undefined {
+  return inventory.find((item) => item.slug === slug);
 }
 
 /**
- * 表示用に価格をフォーマット（万円表記）
+ * ステータス別に一覧取得
  */
-export function formatPriceYen(priceYen?: number): string {
-  if (!priceYen || priceYen <= 0) return "ASK";
-  const man = Math.round(priceYen / 10000);
-  return `${man.toLocaleString("ja-JP")}万円`;
-}
-
-/**
- * 走行距離の表示用
- */
-export function formatMileageKm(mileageKm?: number): string {
-  if (!mileageKm || mileageKm <= 0) return "走行少なめ";
-  return `${mileageKm.toLocaleString("ja-JP")} km`;
+export function getInventoryByStatus(
+  status: InventoryStatus
+): InventoryItem[] {
+  return inventory.filter((item) => item.status === status);
 }
