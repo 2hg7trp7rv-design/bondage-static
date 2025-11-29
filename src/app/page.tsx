@@ -13,38 +13,34 @@ export default function HomePage() {
     <main className="relative min-h-screen bg-[#0F0F10] text-neutral-50">
       {/* 四隅ナビゲーション */}
       <div className="pointer-events-none fixed inset-0 z-30">
-        {/* 左上 ブランド */}
+        {/* 左上 ブランドロゴ（強調版） */}
         <div className="pointer-events-auto absolute left-4 top-4 md:left-8 md:top-8">
           <Link
             href="/"
-            className="border-l-2 border-red-600/80 pl-2 text-[10px] font-semibold tracking-[0.24em] text-neutral-100 md:text-xs"
+            className="inline-flex flex-col gap-1 border-l-2 border-red-600/80 pl-3"
           >
-            <div className="leading-tight">AUTO COLLECTION</div>
-            <div className="text-sm tracking-[0.18em] md:text-base">
+            <span className="text-[10px] font-semibold tracking-[0.32em] text-neutral-300 md:text-xs">
+              AUTO COLLECTION
+            </span>
+            <span className="text-xl font-semibold tracking-[0.32em] text-red-500 md:text-2xl lg:text-3xl">
               BONDAGE
-            </div>
+            </span>
           </Link>
         </div>
 
         {/* 右上 MENU ダミー */}
         <div className="pointer-events-auto absolute right-4 top-4 text-[10px] font-medium tracking-[0.22em] text-neutral-200 md:right-8 md:top-8 md:text-xs">
           <span>MENU</span>{" "}
-          <span className="text-red-500/80 align-middle">///</span>
+          <span className="align-middle text-red-500/80">///</span>
         </div>
 
-        {/* 左下 ロケーション表示 */}
-        <div className="pointer-events-auto absolute bottom-4 left-4 text-[10px] tracking-wide text-neutral-400 md:bottom-8 md:left-8 md:text-xs">
-          <div>YONAGO TOTTORI</div>
-          <div className="mt-0.5 text-[9px] text-neutral-500 md:text-[10px]">
-            35.4°N / 133.3°E
-          </div>
-        </div>
+        {/* 左下 住所表示は削除 */}
 
         {/* 右下 PIT IN ボタン（在庫車ページへ） */}
         <div className="pointer-events-auto absolute bottom-4 right-4 md:bottom-8 md:right-8">
           <Link
             href="/inventory"
-            className="inline-flex items-center justify-center bg-red-600 px-5 py-2 text-xs font-semibold tracking-[0.16em] text-white shadow-[0_0_18px_rgba(239,68,68,0.7)] transition hover:bg-red-500 hover:shadow-[0_0_24px_rgba(239,68,68,0.9)] md:px-7 md:py-2.5 md:text-sm"
+            className="inline-flex items-center justify-center bg-red-600 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-white shadow-[0_0_18px_rgba(239,68,68,0.7)] transition hover:bg-red-500 hover:shadow-[0_0_24px_rgba(239,68,68,0.9)] md:px-7 md:py-2.5 md:text-sm"
           >
             PIT IN
           </Link>
@@ -53,11 +49,23 @@ export default function HomePage() {
 
       {/* メインコンテンツ */}
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-10 px-4 py-16 md:gap-12 md:py-20">
+        {/* BONDAGE タイトル帯 */}
+        <section className="mb-2 mt-2 md:mb-4 md:mt-4">
+          <div className="border-b border-neutral-800/80 pb-4">
+            <div className="text-[11px] font-semibold tracking-[0.32em] text-neutral-500 md:text-xs">
+              AUTO COLLECTION
+            </div>
+            <div className="mt-1 text-3xl font-semibold tracking-[0.35em] text-neutral-50 md:text-4xl lg:text-5xl">
+              BONDAGE
+            </div>
+          </div>
+        </section>
+
         {/* HERO */}
         <section className="rounded-3xl border border-red-900/50 bg-gradient-to-b from-neutral-900/80 via-black/80 to-neutral-900/70 p-6 shadow-[0_0_40px_rgba(0,0,0,0.7)] md:p-8">
           <div className="space-y-5">
             <div className="text-[10px] font-medium tracking-[0.24em] text-red-300/90 md:text-xs">
-              AUTO COLLECTION BONDAGE
+              STOCK TOP
             </div>
 
             <h1 className="text-2xl font-semibold tracking-wide md:text-3xl">
@@ -158,7 +166,7 @@ export default function HomePage() {
             </li>
             <li className="flex gap-2">
               <span className="mt-[4px] h-[6px] w-[6px] rounded-full bg-red-500" />
-              <span>輸入車と国産車を同じ条件での比較</span>
+              <span>輸入車と国産車を同じ条件で比較</span>
             </li>
             <li className="flex gap-2">
               <span className="mt-[4px] h-[6px] w-[6px] rounded-full bg-red-500" />
