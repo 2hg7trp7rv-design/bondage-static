@@ -1,6 +1,8 @@
+import "./globals.css";
+
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { SiteHeader } from "../components/layout/SiteHeader";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export const metadata: Metadata = {
   title: "Auto Collection Bondage | Bondage Digital Independence",
@@ -18,9 +20,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className="min-h-screen bg-[#0a0a0a] text-neutral-100 antialiased">
         <div className="flex min-h-screen flex-col">
           <SiteHeader />
-          <main className="flex-1">
-            {children}
-          </main>
+          <main className="flex-1">{children}</main>
         </div>
       </body>
     </html>
