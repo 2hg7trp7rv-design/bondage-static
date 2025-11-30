@@ -12,11 +12,6 @@ import {
 } from "@/lib/inventory";
 import { DetailGallery } from "@/components/inventory/DetailGallery";
 
-// 動的ルートの型（Next生成のPagePropsと名前がかぶらないようにする）
-type InventoryDetailPageProps = {
-  params: { id: string };
-};
-
 // SSG用: 事前ビルドするパス
 export async function generateStaticParams() {
   const cars = getAllInventory();
@@ -25,9 +20,9 @@ export async function generateStaticParams() {
 
 // SEO用メタデータ
 export async function generateMetadata(
-  { params }: InventoryDetailPageProps,
+  { params }: { params: any },
 ): Promise<Metadata> {
-  const car = getInventoryById(params.id);
+  const car = getInventoryById(String(params.id));
 
   if (!car) {
     return {
@@ -62,10 +57,8 @@ export async function generateMetadata(
 }
 
 // 詳細ページ本体
-export default function InventoryDetailPage({
-  params,
-}: InventoryDetailPageProps) {
-  const car = getInventoryById(params.id);
+export default function InventoryDetailPage({ params }: { params: any }) {
+  const car = getInventoryById(String(params.id));
 
   if (!car) {
     notFound();
@@ -88,7 +81,7 @@ export default function InventoryDetailPage({
     interiorImage,
     rearImage,
     engineImage,
-  } = car;
+  } = car!;
 
   const heroImageSrc =
     mainImage ?? "/images/inventory/bugatti-chiron-main.jpg";
@@ -156,7 +149,9 @@ export default function InventoryDetailPage({
               </div>
 
               <div className="text-right">
-                <p className="text-[11px] text-neutral-500">車両本体価格</p>
+                <p className="text-[11px] text-neutral-500">
+                  車両本体価格
+                </p>
                 <p className="text-xl font-semibold text-red-500">
                   {formatPriceYen(priceYen)}
                 </p>
