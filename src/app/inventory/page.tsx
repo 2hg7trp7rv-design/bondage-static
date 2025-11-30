@@ -1,23 +1,53 @@
 // src/app/inventory/page.tsx
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
   getAllInventory,
   formatPriceYen,
   formatMileageKm,
+  type InventoryStatus,
 } from "@/lib/inventory";
 
 export const metadata: Metadata = {
-  title: "在庫車一覧 | Auto Collection Bondage",
+  title: "在庫車一覧 | Auto Collection Bandage",
   description:
-    "Auto Collection Bondage の在庫車一覧。軽トラからフェラーリ、レンジローバーまで、夜の色気と昼の温度差をそのまま並べたガレージ。",
+    "Auto Collection Bandage の在庫車一覧 軽トラックから輸入車までを同じ目線で並べた在庫リスト",
 };
 
-export default function InventoryPage() {
+type PageProps = {
+  searchParams?: {
+    status?: string;
+  };
+};
+
+const STATUS_LABEL: Record<InventoryStatus, string> = {
+  stock: "在庫あり",
+  sold: "商談成約済",
+  coming_soon: "入庫予定",
+};
+
+function normalizeStatusFilter(
+  value?: string,
+): InventoryStatus | "all" {
+  if (value === "stock" || value === "sold" || value === "coming_soon") {
+    return value;
+  }
+  return "all";
+}
+
+export default function InventoryPage({ searchParams }: PageProps) {
   const cars = getAllInventory();
 
   const inStock = cars.filter((car) => car.status === "stock");
   const sold = cars.filter((car) => car.status === "sold");
   const comingSoon = cars.filter((car) => car.status === "coming_soon");
+
+  const activeStatus = normalizeStatusFilter(searchParams?.status);
+
+  const visibleCars =
+    activeStatus === "all"
+      ? cars
+      : cars.filter((car) => car.status === activeStatus);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 pb-20 pt-8">
@@ -30,22 +60,62 @@ export default function InventoryPage() {
           在庫車一覧
         </h1>
         <p className="text-sm leading-relaxed text-neutral-300">
-          軽トラで荷台にいなりちゃんを乗せて海まで行く週末も、
-          フェラーリで深夜の国道を流す夜も、同じガレージからスタートする。
-          そんな「振れ幅」をそのまま並べた在庫リスト。
+          軽トラックから輸入スポーツカーまでを同じ条件で整理した在庫リスト
         </p>
 
-        {/* シンプルなステータス概要 */}
+        {/* ステータス概要 + フィルタ */}
         <div className="flex flex-wrap gap-2 text-[11px] text-neutral-400">
-          <span className="rounded-full border border-neutral-800 bg-black/60 px-3 py-1">
-            在庫中: {inStock.length} 台
-          </span>
-          <span className="rounded-full border border-neutral-800 bg-black/60 px-3 py-1">
-            商談・成約済: {sold.length} 台
-          </span>
-          <span className="rounded-full border border-neutral-800 bg-black/60 px-3 py-1">
-            入庫予定: {comingSoon.length} 台
-          </span>
+          {/* すべて */}
+          <Link
+            href="/inventory"
+            className={
+              "rounded-full border px-3 py-1 " +
+              (activeStatus === "all"
+                ? "border-red-500 bg-red-900/40 text-red-100"
+                : "border-neutral-800 bg-black/60")
+            }
+          >
+            すべて : {cars.length}台
+          </Link>
+
+          {/* 在庫あり */}
+          <Link
+            href="/inventory?status=stock"
+            className={
+              "rounded-full border px-3 py-1 " +
+              (activeStatus === "stock"
+                ? "border-red-500 bg-red-900/40 text-red-100"
+                : "border-neutral-800 bg-black/60")
+            }
+          >
+            在庫あり : {inStock.length}台
+          </Link>
+
+          {/* 商談成約済 */}
+          <Link
+            href="/inventory?status=sold"
+            className={
+              "rounded-full border px-3 py-1 " +
+              (activeStatus === "sold"
+                ? "border-red-500 bg-red-900/40 text-red-100"
+                : "border-neutral-800 bg-black/60")
+            }
+          >
+            商談成約済 : {sold.length}台
+          </Link>
+
+          {/* 入庫予定 */}
+          <Link
+            href="/inventory?status=coming_soon"
+            className={
+              "rounded-full border px-3 py-1 " +
+              (activeStatus === "coming_soon"
+                ? "border-red-500 bg-red-900/40 text-red-100"
+                : "border-neutral-800 bg-black/60")
+            }
+          >
+            入庫予定 : {comingSoon.length}台
+          </Link>
         </div>
       </section>
 
@@ -53,24 +123,24 @@ export default function InventoryPage() {
       <section className="space-y-4">
         {cars.length === 0 && (
           <p className="rounded-2xl border border-dashed border-neutral-800 bg-black/60 px-5 py-6 text-sm text-neutral-300">
-            まだ在庫データは登録されていません。
-            まずは <code className="rounded bg-neutral-900 px-1.5 py-0.5 text-[11px]">
+            まだ在庫データは登録されていません
+            まずは{" "}
+            <code className="rounded bg-neutral-900 px-1.5 py-0.5 text-[11px]">
               src/data/inventory.json
             </code>{" "}
-            に1台ずつ追加していきましょう。
+            に1台ずつ追加してください
           </p>
         )}
 
         <ul className="flex flex-col gap-4">
-          {cars.map((car) => (
+          {visibleCars.map((car) => (
             <li
               key={car.id}
               className="overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-black/80 via-neutral-950 to-[#1a0b0b] shadow-[0_0_40px_rgba(0,0,0,0.6)]"
             >
               <div className="flex flex-col gap-3 p-4 sm:flex-row sm:gap-5 sm:p-5">
-                {/* 画像エリア（あとで Next/Image に差し替え予定） */}
+                {/* 画像エリア（後で実画像に差し替え） */}
                 <div className="aspect-[4/3] w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950/80 sm:w-48">
-                  {/* 画像はあとで差し替え。今はプレースホルダ */}
                   <div className="flex h-full items-center justify-center text-[11px] text-neutral-500">
                     {car.image ? (
                       <span>画像: {car.image}</span>
@@ -176,7 +246,7 @@ export default function InventoryPage() {
 }
 
 type StatusBadgeProps = {
-  status: "stock" | "sold" | "coming_soon";
+  status: InventoryStatus;
 };
 
 function StatusBadge({ status }: StatusBadgeProps) {
