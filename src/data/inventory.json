@@ -1,20 +1,33 @@
 [
   {
-    "id": "bugatti-chiron-01",
-    "slug": "bugatti-chiron-01",
-    "displayName": "ブガッティ シロン",
-    "maker": "BUGATTI",
-    "model": "Chiron",
-    "year": 2018,
-    "grade": "ベースグレード",
-    "priceYen": 380000000,
-    "mileageKm": 3500,
-    "color": "ブルー／ブラック",
+    "id": "bugatti-chiron",
     "status": "stock",
-    "tags": ["ハイパーカー", "W16", "フレンチ"],
-    "thumbnailUrl": "/images/inventory/bugatti-chiron-01.jpg",
-    "shortDescription": "8.0L W16クワッドターボを搭載するブガッティのフラッグシップモデル。",
-    "lifestyleNote": "コレクションガレージでの保管を前提とした一台。高速走行はイベントや特別な日を想定。"
+    "maker": "BUGATTI",
+    "title": "ブガッティ シロン",
+
+    "catchCopy": "8.0L W16 クワッドターボを搭載するブガッティのフラッグシップモデル。",
+    "shortDescription": "世界限定生産のハイパーカー。高速域での安定性とラグジュアリーな内装を両立した1台。",
+
+    "year": 2018,
+    "mileageKm": 3500,
+    "transmission": "7速DCT",
+    "drive": "4WD",
+    "color": "グロスホワイト/ブラック",
+    "grade": "ベースグレード",
+    "engine": "8.0L W16 クワッドターボ",
+    "specNote": "カーボンセラミックブレーキとアクティブエアロを備えたハイパフォーマンス仕様。",
+
+    "priceYen": 380000000,
+
+    "lifestyleNote": "コレクションガレージでの保管を前提にした1台。高速道路クルージングや特別なイベントでの走行を想定。",
+
+    "tags": ["ハイパーカー", "W16", "フレンチラグジュアリー"],
+
+    "image": "/images/inventory/bugatti-chiron-main.jpg",
+    "imageMain": "/images/inventory/bugatti-chiron-main.jpg",
+    "imageInterior": "/images/inventory/bugatti-chiron-interior.jpg",
+    "imageRear": "/images/inventory/bugatti-chiron-rear.jpg",
+    "imageEngine": "/images/inventory/bugatti-chiron-engine.jpg"
   },
   {
     "id": "bugatti-chiron-sport-01",
