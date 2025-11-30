@@ -11,75 +11,38 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   const cars = getAllInventory();
+  const featured = cars[0];
 
-  // 在庫から優先的に 1 台ピックアップ
-  const featured =
-    cars.find((car) => {
-      const status = String((car as any).status);
-      return status === "IN_STOCK" || status === "stock";
-    }) ?? cars[0];
+  const featuredName =
+    featured &&
+    [featured.maker, featured.model, featured.grade]
+      .filter(Boolean)
+      .join(" ");
 
-  // 表示名：メーカー＋車種＋グレードで組み立て
-  const featuredName = featured
-    ? [featured.maker, featured.model, featured.grade]
-        .filter((v): v is string => Boolean(v))
-        .join(" ")
-    : "在庫車トップ";
-
-  // 2枚目で使う画像（なければ hero.jpg）
-  const featuredImage =
-    (featured as any)?.mainImage ??
-    (featured as any)?.image ??
-    "/images/hero.jpg";
-
-  // 説明文：在庫データに shortDescription があれば優先
-  const featuredDescription: string | undefined =
-    (featured as any)?.shortDescription ??
-    (featured
-      ? [featured.maker, featured.model]
-          .filter((v): v is string => Boolean(v))
-          .join(" ")
-      : undefined);
+  const featuredPriceLabel =
+    featured && featured.priceYen != null
+      ? `￥${Intl.NumberFormat("ja-JP").format(Number(featured.priceYen))}`
+      : undefined;
 
   return (
-    <main className="relative min-h-screen bg-[#050507] text-neutral-50">
-      {/* 1枚目：ヒーローセクション（背景だけ hero.jpg。画像差し替えはあとで） */}
-      <section className="relative h-[70vh] min-h-[460px] overflow-hidden">
-        {/* 背景画像 */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url(/images/hero.jpg)" }}
-        />
-        {/* トーン調整オーバーレイ */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-black/95" />
+    <main className="min-h-screen bg-[#050507] text-neutral-50">
+      {/* ── HERO（紙の1枚目イメージ） ─────────────────────────── */}
+      <section className="relative overflow-hidden">
+        {/* 背景写真（/public/images/hero.jpg を想定） */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="h-full w-full bg-[url('/images/hero.jpg')] bg-cover bg-center opacity-40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/90 to-black" />
+        </div>
 
-        {/* ヘッダー（ナビ） */}
-        <header className="relative z-20 flex items-center justify-between px-6 pt-5 md:px-10 md:pt-7">
-          <div className="text-[11px] tracking-[0.26em] text-neutral-100 md:text-xs">
-            AUTO COLLECTION{" "}
-            <span className="ml-1 font-semibold text-red-500">Bondage</span>
-          </div>
-          <nav className="flex items-center gap-4 text-[11px] tracking-[0.2em] text-neutral-200 md:text-xs">
-            <Link href="/" className="opacity-80">
-              HOME
-            </Link>
-            <Link
-              href="https://www.instagram.com"
-              className="rounded-full border border-red-500/70 bg-black/60 px-4 py-1.5 text-[10px] font-semibold tracking-[0.22em] text-red-100 shadow-[0_0_18px_rgba(248,113,113,0.7)] md:text-[11px]"
-            >
-              INSTAGRAM
-            </Link>
-          </nav>
-        </header>
-
-        {/* テキストレイヤー */}
-        <div className="relative z-10 flex h-full flex-col justify-center px-6 pb-16 pt-10 md:px-10 md:pb-24">
-          <p className="text-xs font-light tracking-[0.3em] text-neutral-200/80 md:text-sm">
+        <div className="relative z-10 mx-auto flex min-h-[60vh] max-w-5xl flex-col items-center justify-center px-4 pb-16 pt-12 text-center md:min-h-[70vh] md:pb-20 md:pt-16">
+          <div className="text-[11px] font-medium tracking-[0.28em] text-neutral-300/85 md:text-xs">
             AUTO COLLECTION
-          </p>
-          <h1 className="mt-4 text-4xl tracking-[0.18em] text-white md:text-5xl">
+          </div>
+
+          <h1 className="mt-6 text-4xl font-semibold tracking-[0.14em] text-neutral-50 md:text-5xl lg:text-6xl">
             <span className="font-serif italic">Bondage</span>
           </h1>
+
           <p className="mt-6 max-w-xl text-[13px] leading-relaxed text-neutral-200/90 md:text-sm">
             夜のガレージと昼の生活のあいだにある場所。まずはこの1枚から、
             在庫車と世界観を覗いてください。
@@ -88,7 +51,7 @@ export default function HomePage() {
           <div className="mt-9">
             <Link
               href="/inventory"
-              className="inline-flex items-center justify-center rounded-full bg-red-600 px-10 py-3 text-sm font-semibold tracking-[0.18em] text-white shadow-[0_0_28px_rgba(248,113,113,0.85)] transition hover:bg-red-500 hover:shadow-[0_0_36px_rgba(248,113,113,1)]"
+              className="inline-flex items-center justify-center rounded-full bg-red-600 px-10 py-3 text-sm font-semibold tracking-[0.2em] text-white shadow-[0_0_32px_rgba(239,68,68,0.8)] transition hover:bg-red-500 hover:shadow-[0_0_40px_rgba(239,68,68,1)]"
             >
               在庫車一覧
             </Link>
@@ -96,77 +59,100 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* メインコンテンツ */}
-      <div className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-10 md:gap-12 md:py-14">
-        {/* 2枚目：在庫車トップ（画像全面＋文字を重ねる＋赤枠グロー） */}
-        <section className="relative overflow-hidden rounded-[34px] border border-red-600/70 bg-black/80 shadow-[0_0_60px_rgba(248,113,113,0.6)]">
-          {/* 背景画像（縦長＋全体を少し暗めに） */}
-          <div
-            className="h-[320px] w-full bg-cover bg-center brightness-[0.65] md:h-[420px]"
-            style={{ backgroundImage: `url(${featuredImage})` }}
-          />
+      {/* ── メインコンテンツ ─────────────────────────────── */}
+      <div className="mx-auto flex max-w-5xl flex-col gap-10 px-4 pb-16 md:gap-12 md:pb-20">
+        {/* STOCK TOP（おすすめ在庫カード） */}
+        <section className="mt-4">
+          <div className="rounded-[32px] border border-red-900/60 bg-gradient-to-b from-black/80 via-black/90 to-black/90 p-[2px] shadow-[0_0_50px_rgba(248,113,113,0.4)]">
+            <div className="rounded-[30px] bg-gradient-to-b from-[#141416] via-[#050507] to-[#141416] p-4 md:p-5">
+              <div className="relative overflow-hidden rounded-[26px] border border-red-500/40 bg-black/70">
+                {/* 画像 */}
+                <div className="relative aspect-[16/10] w-full md:aspect-[16/9]">
+                  {featured && (featured as any).image ? (
+                    <>
+                      <div
+                        className="absolute inset-0 bg-cover bg-center brightness-[0.55]"
+                        style={{
+                          backgroundImage: `url(${(featured as any).image})`,
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/10 to-black/85" />
+                    </>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-neutral-400">
+                      おすすめ在庫車の写真を /public/images に追加してください
+                    </div>
+                  )}
 
-          {/* 上から下までのグラデーション（さらに文字部分を暗く） */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/20" />
+                  {/* テキストオーバーレイ */}
+                  <div className="relative z-10 flex h-full flex-col justify-between p-4 md:p-6">
+                    {/* 左上 STOCK TOP */}
+                    <div className="inline-flex rounded-full border border-white/60 bg-white/10 px-3 py-1 text-[10px] font-semibold tracking-[0.22em] text-neutral-50 backdrop-blur-sm md:px-4 md:text-[11px]">
+                      STOCK TOP
+                    </div>
 
-          {/* オーバーレイテキストレイアウト */}
-          <div className="absolute inset-0 flex flex-col justify-between px-5 py-4 md:px-8 md:py-6">
-            {/* 左上 STOCK TOP ラベルを高めに配置 */}
-            <div>
-              <p className="inline-block rounded-full bg-black/55 px-3 py-1 text-[10px] font-medium tracking-[0.26em] text-red-300/95 md:px-4 md:text-xs">
-                STOCK TOP
-              </p>
-            </div>
+                    {/* 下部 情報帯＋ボタン */}
+                    {featured && (
+                      <div className="mt-auto flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                        {/* 情報帯 */}
+                        <div className="inline-flex max-w-[70%] flex-col gap-2 rounded-2xl border border-white/55 bg-white/12 px-4 py-3 text-left text-black/90 backdrop-blur-sm md:max-w-[65%] md:px-5 md:py-3.5">
+                          <div className="text-[11px] font-semibold tracking-[0.18em] text-neutral-900/70">
+                            BUGATTI
+                          </div>
+                          <div className="text-sm font-semibold md:text-base">
+                            {featuredName ?? "在庫車を準備中"}
+                          </div>
+                          <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-[11px] text-neutral-900/80 md:text-[12px]">
+                            {featured.year && (
+                              <>
+                                <span className="text-neutral-700">年式</span>
+                                <span>{featured.year}年式</span>
+                              </>
+                            )}
+                            {featured.odometerKm && (
+                              <>
+                                <span className="text-neutral-700">走行距離</span>
+                                <span>
+                                  {Number(featured.odometerKm).toLocaleString(
+                                    "ja-JP"
+                                  )}
+                                  km
+                                </span>
+                              </>
+                            )}
+                            {featuredPriceLabel && (
+                              <>
+                                <span className="text-neutral-700">価格</span>
+                                <span>{featuredPriceLabel}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
 
-            {/* 下側：文字＋ボタン（白い薄いパネルの上に載せる） */}
-            <div className="max-w-xl rounded-3xl border border-white/35 bg-white/12 px-4 py-3 backdrop-blur-sm md:px-5 md:py-4">
-              <div className="space-y-1 md:flex md:flex-wrap md:items-end md:justify-between md:gap-2 md:space-y-0">
-                <h2 className="text-base font-semibold tracking-wide text-black md:text-lg">
-                  {featuredName}
-                </h2>
-
-                {featured?.year && (
-                  <p className="text-[11px] text-black/80 md:text-xs">
-                    {featured.year}年式
-                  </p>
-                )}
-              </div>
-
-              {featuredDescription && (
-                <p className="mt-2 text-[12px] leading-relaxed text-black/80 md:text-[13px]">
-                  {featuredDescription}
-                </p>
-              )}
-
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                {featured?.priceYen && (
-                  <div className="text-sm font-semibold text-black md:text-base">
-                    価格：
-                    {Intl.NumberFormat("ja-JP").format(
-                      Number(featured.priceYen)
+                        {/* 在庫車一覧ボタン */}
+                        <div className="flex justify-end md:justify-center">
+                          <Link
+                            href="/inventory"
+                            className="inline-flex min-w-[150px] items-center justify-center rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold tracking-[0.16em] text-white shadow-[0_0_28px_rgba(239,68,68,0.9)] transition hover:bg-red-500 hover:shadow-[0_0_36px_rgba(239,68,68,1)] md:min-w-[170px]"
+                          >
+                            在庫車一覧
+                          </Link>
+                        </div>
+                      </div>
                     )}
-                    円
                   </div>
-                )}
-
-                <Link
-                  href="/inventory"
-                  className="inline-flex items-center justify-center rounded-full bg-red-600 px-7 py-2.5 text-[12px] font-semibold tracking-[0.18em] text-white shadow-[0_0_26px_rgba(248,113,113,0.85)] transition hover:bg-red-500 hover:shadow-[0_0_34px_rgba(248,113,113,1)] md:px-9 md:text-sm"
-                >
-                  在庫車一覧
-                </Link>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* コラム / 整備記録簿 セクション */}
+        {/* COLUMN / 整備記録簿 */}
         <section
           id="layout"
           className="grid gap-6 md:grid-cols-2 md:gap-8"
           aria-label="コラムと整備記録簿"
         >
-          {/* COLUMN */}
           <article className="rounded-3xl border border-neutral-800 bg-gradient-to-b from-neutral-900/80 via-black/80 to-neutral-900/70 p-5 shadow-[0_0_30px_rgba(0,0,0,0.6)] md:p-6">
             <div className="text-[10px] font-semibold tracking-[0.24em] text-neutral-400">
               COLUMN
@@ -176,11 +162,10 @@ export default function HomePage() {
             </h2>
             <p className="mt-3 text-[13px] leading-relaxed text-neutral-200/85">
               買取査定の裏側や仕入れの基準、展示の工夫など
-              中古車屋ならではの視点でまとめる短いコラムのスペース
+              中古車屋ならではの視点でまとめる短いコラムのスペース。
             </p>
           </article>
 
-          {/* 整備記録簿 */}
           <article className="rounded-3xl border border-neutral-800 bg-gradient-to-b from-neutral-900/80 via-black/80 to-neutral-900/70 p-5 shadow-[0_0_30px_rgba(0,0,0,0.6)] md:p-6">
             <div className="text-[10px] font-semibold tracking-[0.24em] text-neutral-400">
               整備記録簿
@@ -189,8 +174,8 @@ export default function HomePage() {
               整備記録と入庫履歴
             </h2>
             <p className="mt-3 text-[13px] leading-relaxed text-neutral-200/85">
-              納車前点検やオイル交換、消耗品交換などの整備履歴を整理するスペース
-              在庫車ごとのメンテナンス状況を把握しやすくするための下準備
+              納車前点検やオイル交換、消耗品交換などの整備履歴を整理するスペース。
+              在庫車ごとのメンテナンス状況を把握しやすくするための下準備。
             </p>
           </article>
         </section>
@@ -206,24 +191,22 @@ export default function HomePage() {
 
           <ul className="mt-4 space-y-3 text-[13px] leading-relaxed text-neutral-200/85">
             <li className="flex gap-2">
-              <span className="mt-[4px] h-[6px] w-[6px] rounded-full bg-red-500" />
+              <span className="mt-[5px] h-[6px] w-[6px] rounded-full bg-red-500" />
               <span>在庫車リストと車両ごとの基本情報の確認</span>
             </li>
             <li className="flex gap-2">
-              <span className="mt-[4px] h-[6px] w-[6px] rounded-full bg-red-500" />
+              <span className="mt-[5px] h-[6px] w-[6px] rounded-full bg-red-500" />
               <span>輸入車と国産車を同じ条件で比較</span>
             </li>
             <li className="flex gap-2">
-              <span className="mt-[4px] h-[6px] w-[6px] rounded-full bg-red-500" />
+              <span className="mt-[5px] h-[6px] w-[6px] rounded-full bg-red-500" />
               <span>中古車屋さんならではの目線でのコラム</span>
             </li>
           </ul>
 
           <p className="mt-5 text-[11px] text-neutral-500">
-            個別ページや比較機能を順次追加予定
+            個別ページや比較機能を順次追加予定。
           </p>
         </section>
       </div>
     </main>
-  );
-}
