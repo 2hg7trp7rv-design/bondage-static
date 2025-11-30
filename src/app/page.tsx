@@ -51,7 +51,7 @@ export default function HomePage() {
           style={{ backgroundImage: "url(/images/hero.jpg)" }}
         />
         {/* トーン調整オーバーレイ */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/60 to-black/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-black/95" />
 
         {/* ヘッダー（ナビ） */}
         <header className="relative z-20 flex items-center justify-between px-6 pt-5 md:px-10 md:pt-7">
@@ -88,7 +88,7 @@ export default function HomePage() {
           <div className="mt-9">
             <Link
               href="/inventory"
-              className="inline-flex items-center justify-center rounded-full border border-red-500/80 bg-black/60 px-10 py-3 text-sm font-semibold tracking-[0.18em] text-white shadow-[0_0_26px_rgba(248,113,113,0.65)] transition hover:bg-red-600 hover:shadow-[0_0_34px_rgba(248,113,113,0.9)]"
+              className="inline-flex items-center justify-center rounded-full bg-red-600 px-10 py-3 text-sm font-semibold tracking-[0.18em] text-white shadow-[0_0_28px_rgba(248,113,113,0.85)] transition hover:bg-red-500 hover:shadow-[0_0_36px_rgba(248,113,113,1)]"
             >
               在庫車一覧
             </Link>
@@ -99,57 +99,63 @@ export default function HomePage() {
       {/* メインコンテンツ */}
       <div className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-10 md:gap-12 md:py-14">
         {/* 2枚目：在庫車トップ（画像全面＋文字を重ねる＋赤枠グロー） */}
-        <section className="relative overflow-hidden rounded-[32px] border border-red-600/70 bg-black/70 shadow-[0_0_55px_rgba(248,113,113,0.55)]">
-          {/* 背景画像（全面） */}
+        <section className="relative overflow-hidden rounded-[34px] border border-red-600/70 bg-black/80 shadow-[0_0_60px_rgba(248,113,113,0.6)]">
+          {/* 背景画像（縦長＋全体を少し暗めに） */}
           <div
-            className="h-[260px] w-full bg-cover bg-center md:h-[340px]"
+            className="h-[320px] w-full bg-cover bg-center brightness-[0.65] md:h-[420px]"
             style={{ backgroundImage: `url(${featuredImage})` }}
           />
 
-          {/* 下側グラデーション（文字を読みやすく） */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/92 via-black/45 to-transparent" />
+          {/* 上から下までのグラデーション（さらに文字部分を暗く） */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/20" />
 
-          {/* オーバーレイテキスト */}
-          <div className="absolute inset-x-5 bottom-5 space-y-3 md:inset-x-8 md:bottom-7 md:space-y-4">
-            <p className="text-[10px] font-medium tracking-[0.26em] text-red-300/90 md:text-xs">
-              STOCK TOP
-            </p>
-
-            <div className="space-y-1 md:flex md:flex-wrap md:items-end md:justify-between md:gap-2 md:space-y-0">
-              <h2 className="text-lg font-semibold tracking-wide md:text-xl">
-                {featuredName}
-              </h2>
-
-              {featured?.year && (
-                <p className="text-[11px] text-neutral-200/85 md:text-xs">
-                  {featured.year}年式
-                </p>
-              )}
+          {/* オーバーレイテキストレイアウト */}
+          <div className="absolute inset-0 flex flex-col justify-between px-5 py-4 md:px-8 md:py-6">
+            {/* 左上 STOCK TOP ラベルを高めに配置 */}
+            <div>
+              <p className="inline-block rounded-full bg-black/55 px-3 py-1 text-[10px] font-medium tracking-[0.26em] text-red-300/95 md:px-4 md:text-xs">
+                STOCK TOP
+              </p>
             </div>
 
-            {featuredDescription && (
-              <p className="max-w-2xl text-[12px] leading-relaxed text-neutral-200/90 md:text-[13px]">
-                {featuredDescription}
-              </p>
-            )}
+            {/* 下側：文字＋ボタン（白い薄いパネルの上に載せる） */}
+            <div className="max-w-xl rounded-3xl border border-white/35 bg-white/12 px-4 py-3 backdrop-blur-sm md:px-5 md:py-4">
+              <div className="space-y-1 md:flex md:flex-wrap md:items-end md:justify-between md:gap-2 md:space-y-0">
+                <h2 className="text-base font-semibold tracking-wide text-black md:text-lg">
+                  {featuredName}
+                </h2>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              {featured?.priceYen && (
-                <div className="text-sm font-semibold text-white md:text-base">
-                  価格：
-                  {Intl.NumberFormat("ja-JP").format(
-                    Number(featured.priceYen)
-                  )}
-                  円
-                </div>
+                {featured?.year && (
+                  <p className="text-[11px] text-black/80 md:text-xs">
+                    {featured.year}年式
+                  </p>
+                )}
+              </div>
+
+              {featuredDescription && (
+                <p className="mt-2 text-[12px] leading-relaxed text-black/80 md:text-[13px]">
+                  {featuredDescription}
+                </p>
               )}
 
-              <Link
-                href="/inventory"
-                className="inline-flex items-center justify-center rounded-full border border-red-400/90 bg-black/70 px-8 py-2.5 text-sm font-semibold tracking-[0.18em] text-white shadow-[0_0_26px_rgba(248,113,113,0.7)] transition hover:bg-red-600 hover:shadow-[0_0_34px_rgba(248,113,113,0.95)]"
-              >
-                在庫車一覧
-              </Link>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                {featured?.priceYen && (
+                  <div className="text-sm font-semibold text-black md:text-base">
+                    価格：
+                    {Intl.NumberFormat("ja-JP").format(
+                      Number(featured.priceYen)
+                    )}
+                    円
+                  </div>
+                )}
+
+                <Link
+                  href="/inventory"
+                  className="inline-flex items-center justify-center rounded-full bg-red-600 px-7 py-2.5 text-[12px] font-semibold tracking-[0.18em] text-white shadow-[0_0_26px_rgba(248,113,113,0.85)] transition hover:bg-red-500 hover:shadow-[0_0_34px_rgba(248,113,113,1)] md:px-9 md:text-sm"
+                >
+                  在庫車一覧
+                </Link>
+              </div>
             </div>
           </div>
         </section>
