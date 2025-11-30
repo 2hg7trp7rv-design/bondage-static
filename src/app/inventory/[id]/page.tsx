@@ -11,300 +11,356 @@ import {
 
 // 動的メタデータ
 export async function generateMetadata(
-  { params }: { params: { id: string } }
+  { params }: any
 ): Promise<Metadata> {
   const cars = getAllInventory();
-  const car = cars.find((item) => item.id === params.id);
+  const resolvedParams = await params;
+  const car = cars.find((item) => item.id === resolvedParams?.id);
 
   if (!car) {
     return {
-      title: "在庫車が見つかりません | Auto Collection Bandage",
-      description: "指定された在庫車は現在公開されていません。",
+      title: "在庫情報が見つかりません | AUTO COLLECTION BANDAGE",
+      description: "指定された在庫IDの車両情報は見つかりませんでした",
     };
   }
 
   const title = `${car.maker} ${car.title} | 在庫車詳細`;
-  const desc =
+  const description =
     car.shortDescription ??
-    `${car.maker} ${car.title}の在庫車詳細ページ。価格や走行距離、装備情報を掲載。`;
+    car.catchCopy ??
+    "AUTO COLLECTION BANDAGE の在庫車詳細ページ 価格や走行距離 装備情報を掲載";
 
   return {
     title,
-    description: desc,
+    description,
   };
 }
 
-// SSG用パラメータ
-export function generateStaticParams() {
-  const cars = getAllInventory();
-  return cars.map((car) => ({ id: car.id }));
-}
-
-export default function InventoryDetailPage(
-  { params }: { params: { id: string } }
+// ページ本体
+export default async function InventoryDetailPage(
+  { params }: any
 ) {
   const cars = getAllInventory();
-  const car = cars.find((item) => item.id === params.id);
+  const resolvedParams = await params;
+  const currentCarId = resolvedParams?.id;
+
+  const car = cars.find((item) => item.id === currentCarId);
 
   if (!car) {
-    notFound();
+    return notFound();
   }
 
-  const gallery = [
-    {
-      key: "main",
-      label: "メイン",
-      src: car.imageMain ?? car.image,
-    },
-    {
-      key: "interior",
-      label: "内装",
-      src: car.imageInterior,
-    },
-    {
-      key: "rear",
-      label: "テール",
-      src: car.imageRear,
-    },
-    {
-      key: "engine",
-      label: "エンジンルーム",
-      src: car.imageEngine,
-    },
-  ].filter((item) => item.src);
+  // 画像パス（在庫ごとに固定）
+  const mainImage = car.images?.main ?? "/images/inventory/bugatti-chiron-main.jpg";
+  const interiorImage =
+    car.images?.interior ?? "/images/inventory/bugatti-chiron-interior.jpg";
+  const rearImage =
+    car.images?.rear ?? "/images/inventory/bugatti-chiron-rear.jpg";
+  const engineImage =
+    car.images?.engine ?? "/images/inventory/bugatti-chiron-engine.jpg";
+
+  // 他の在庫（同ページ内の回遊用）
+  const otherCars = cars.filter((item) => item.id !== car.id);
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-8 px-4 pb-20 pt-8">
-      {/* パンくずと戻る */}
-      <div className="flex items-center justify-between text-[11px] text-neutral-400">
-        <div className="flex items-center gap-1.5">
-          <Link
-            href="/"
-            className="underline-offset-4 hover:underline"
-          >
-            HOME
-          </Link>
-          <span>/</span>
-          <Link
-            href="/inventory"
-            className="underline-offset-4 hover:underline"
-          >
-            在庫車一覧
-          </Link>
-          <span>/</span>
-          <span className="text-neutral-300">{car.title}</span>
-        </div>
-        <span className="tracking-[0.28em] uppercase">
-          Inventory Detail
-        </span>
-      </div>
+    <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 pb-20 pt-8">
+      {/* パンくず */}
+      <nav className="mb-1 text-[11px] text-neutral-500">
+        <Link
+          href="/inventory"
+          className="underline-offset-2 hover:underline"
+        >
+          在庫車一覧
+        </Link>
+        <span className="mx-1.5 text-neutral-600">/</span>
+        <span>{car.title}</span>
+      </nav>
 
-      {/* 上部ヘッダー */}
-      <section className="rounded-3xl border border-neutral-800 bg-gradient-to-br from-black/80 via-neutral-950 to-[#1a0b0b] p-5 shadow-[0_0_40px_rgba(0,0,0,0.7)] md:p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-2">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">
+      {/* ヘッダー + メイン画像 */}
+      <section className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] md:items-start">
+        {/* テキスト側 */}
+        <div className="space-y-3 md:space-y-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-neutral-500">
+            Inventory Detail
+          </p>
+
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-neutral-500">
               {car.maker}
             </p>
-            <h1 className="text-xl font-semibold sm:text-2xl">
+            <h1 className="mt-1 text-xl font-semibold sm:text-2xl">
               {car.title}
             </h1>
-            {car.catchCopy && (
-              <p className="text-xs font-medium text-[#ecdab9]">
-                {car.catchCopy}
-              </p>
-            )}
           </div>
 
-          <div className="flex flex-col items-end gap-2 text-right">
-            <StatusBadge status={car.status} />
+          {car.catchCopy && (
+            <p className="text-xs font-medium text-[#ecdab9]">
+              {car.catchCopy}
+            </p>
+          )}
+
+          {car.shortDescription && (
+            <p className="text-sm leading-relaxed text-neutral-300">
+              {car.shortDescription}
+            </p>
+          )}
+
+          {/* 価格とステータス */}
+          <div className="mt-2 flex flex-wrap items-end gap-4 border-t border-neutral-900 pt-3">
             <div>
-              <p className="text-[11px] text-neutral-500">
-                車両本体価格
-              </p>
-              <p className="text-xl font-semibold text-red-500 sm:text-2xl">
+              <p className="text-[11px] text-neutral-500">車両本体価格</p>
+              <p className="text-2xl font-semibold text-red-500">
                 {formatPriceYen(car.priceYen)}
               </p>
             </div>
+            <div className="rounded-full border border-neutral-800 bg-black/70 px-3 py-1 text-[11px] text-neutral-300">
+              {car.status === "stock" && "在庫あり"}
+              {car.status === "sold" && "成約済"}
+              {car.status === "coming_soon" && "入庫予定"}
+            </div>
           </div>
         </div>
 
-        {car.shortDescription && (
-          <p className="mt-4 text-xs leading-relaxed text-neutral-300 sm:text-sm">
-            {car.shortDescription}
-          </p>
-        )}
+        {/* メイン画像 */}
+        <div className="overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-black via-neutral-950 to-[#1a0b0b] shadow-[0_0_40px_rgba(0,0,0,0.7)]">
+          <div className="relative aspect-[4/3] w-full">
+            <Image
+              src={mainImage}
+              alt={`${car.title} メイン画像`}
+              fill
+              className="object-cover"
+              sizes="(min-width: 768px) 420px, 100vw"
+              priority
+            />
+          </div>
+        </div>
       </section>
 
-      {/* 画像ギャラリー */}
-      {gallery.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold tracking-wide">
-            フォトギャラリー
+      {/* 詳細情報 + ギャラリー */}
+      <section className="grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)] md:items-start">
+        {/* スペックなど */}
+        <InventoryMetaSection car={car} />
+
+        {/* 詳細ギャラリー */}
+        <DetailGallery
+          main={mainImage}
+          interior={interiorImage}
+          rear={rearImage}
+          engine={engineImage}
+          title={car.title}
+        />
+      </section>
+
+      {/* ライフスタイルコメント */}
+      {car.lifestyleNote && (
+        <section className="mt-4 rounded-2xl border border-neutral-800 bg-black/70 px-4 py-4 text-[13px] leading-relaxed text-neutral-300 sm:px-5 sm:py-5">
+          <h2 className="mb-2 text-sm font-semibold">
+            このクルマと暮らすイメージ
           </h2>
+          <p>{car.lifestyleNote}</p>
+        </section>
+      )}
 
-          {/* 横スクロールの大きな画像 */}
-          <div className="relative overflow-x-auto">
-            <div className="flex snap-x snap-mandatory gap-3 pb-2">
-              {gallery.map((item) => (
-                <div
-                  key={item.key}
-                  className="relative h-64 min-w-full snap-center overflow-hidden rounded-2xl border border-neutral-800 bg-black/80 sm:h-80"
-                >
-                  <Image
-                    src={item.src as string}
-                    alt={`${car.title} ${item.label}画像`}
-                    fill
-                    className="object-cover"
-                    sizes="(min-width: 768px) 800px, 100vw"
-                    priority={item.key === "main"}
-                  />
-                  <div className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-[11px] text-neutral-100">
-                    {item.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ラベル行 */}
-          <div className="flex flex-wrap gap-1.5 text-[11px] text-neutral-400">
-            {gallery.map((item) => (
-              <span
-                key={item.key}
-                className="rounded-full border border-neutral-700 bg-black/60 px-2.5 py-0.5"
+      {/* 他の在庫へのリンク */}
+      {otherCars.length > 0 && (
+        <section className="mt-6 space-y-3">
+          <h2 className="text-sm font-semibold text-neutral-100">
+            他の在庫車
+          </h2>
+          <div className="flex gap-2 overflow-x-auto pb-1 text-[12px]">
+            {otherCars.map((item) => (
+              <Link
+                key={item.id}
+                href={`/inventory/${item.id}`}
+                className="min-w-[160px] rounded-xl border border-neutral-800 bg-black/70 px-3 py-2 hover:border-red-500/70"
               >
-                {item.label}
-              </span>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
+                  {item.maker}
+                </p>
+                <p className="mt-0.5 line-clamp-2 text-[12px] text-neutral-100">
+                  {item.title}
+                </p>
+                <p className="mt-1 text-[11px] text-red-400">
+                  {formatPriceYen(item.priceYen)}
+                </p>
+              </Link>
             ))}
           </div>
         </section>
       )}
-
-      {/* 車両スペック */}
-      <section className="space-y-4 rounded-3xl border border-neutral-800 bg-gradient-to-b from-neutral-950 via-black to-neutral-950 p-5 md:p-6">
-        <h2 className="text-sm font-semibold tracking-wide">
-          車両情報
-        </h2>
-
-        <div className="grid gap-x-6 gap-y-2 text-[12px] text-neutral-200 sm:grid-cols-2 sm:text-sm">
-          {car.year && (
-            <SpecRow label="年式" value={`${car.year}年`} />
-          )}
-          {car.mileageKm && (
-            <SpecRow
-              label="走行距離"
-              value={formatMileageKm(car.mileageKm)}
-            />
-          )}
-          {car.color && (
-            <SpecRow label="ボディカラー" value={car.color} />
-          )}
-          {car.grade && (
-            <SpecRow label="グレード" value={car.grade} />
-          )}
-          {car.transmission && (
-            <SpecRow label="ミッション" value={car.transmission} />
-          )}
-          {car.drive && (
-            <SpecRow label="駆動方式" value={car.drive} />
-          )}
-          {car.engine && (
-            <SpecRow label="エンジン" value={car.engine} />
-          )}
-          {car.specNote && (
-            <SpecRow label="装備など" value={car.specNote} />
-          )}
-        </div>
-      </section>
-
-      {/* ライフスタイルコメントなど */}
-      {(car.lifestyleNote || (car.tags && car.tags.length > 0)) && (
-        <section className="space-y-4 rounded-3xl border border-neutral-800 bg-gradient-to-b from-neutral-950 via-black to-neutral-950 p-5 md:p-6">
-          {car.lifestyleNote && (
-            <div className="space-y-1">
-              <h2 className="text-sm font-semibold tracking-wide">
-                補足情報
-              </h2>
-              <p className="text-[12px] leading-relaxed text-neutral-300 sm:text-sm">
-                {car.lifestyleNote}
-              </p>
-            </div>
-          )}
-
-          {car.tags && car.tags.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-[12px] font-semibold tracking-wide text-neutral-300">
-                タグ
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {car.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-neutral-800 bg-black/60 px-2.5 py-0.5 text-[10px] text-neutral-400"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* 一覧に戻る */}
-      <div className="mt-2 flex justify-center">
-        <Link
-          href="/inventory"
-          className="inline-flex items-center justify-center rounded-full border border-neutral-700 bg-black/60 px-5 py-2 text-xs font-semibold tracking-wide text-neutral-100 transition hover:border-neutral-500 hover:bg-neutral-900"
-        >
-          在庫車一覧に戻る
-        </Link>
-      </div>
     </main>
   );
 }
 
-type StatusBadgeProps = {
-  status: "stock" | "sold" | "coming_soon";
+// 在庫メタ情報
+type InventoryCar = ReturnType<typeof getAllInventory>[number];
+
+type InventoryMetaSectionProps = {
+  car: InventoryCar;
 };
 
-function StatusBadge({ status }: StatusBadgeProps) {
-  if (status === "stock") {
-    return (
-      <span className="rounded-full border border-red-600/60 bg-red-600/15 px-3 py-1 text-[11px] font-medium text-red-400">
-        在庫あり
-      </span>
-    );
-  }
-  if (status === "sold") {
-    return (
-      <span className="rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-[11px] font-medium text-neutral-400">
-        成約済
-      </span>
-    );
-  }
+function InventoryMetaSection({ car }: InventoryMetaSectionProps) {
   return (
-    <span className="rounded-full border border-amber-600/70 bg-amber-900/20 px-3 py-1 text-[11px] font-medium text-amber-300">
-      入庫予定
-    </span>
+    <section className="space-y-4 rounded-2xl border border-neutral-800 bg-black/70 p-4 sm:p-5">
+      <h2 className="text-sm font-semibold text-neutral-100">
+        基本情報
+      </h2>
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px] text-neutral-200 sm:text-[13px]">
+        {car.year && (
+          <div>
+            <p className="text-[11px] text-neutral-500">年式</p>
+            <p>{car.year}年</p>
+          </div>
+        )}
+        {car.mileageKm && (
+          <div>
+            <p className="text-[11px] text-neutral-500">走行距離</p>
+            <p>{formatMileageKm(car.mileageKm)}</p>
+          </div>
+        )}
+        {car.color && (
+          <div>
+            <p className="text-[11px] text-neutral-500">ボディカラー</p>
+            <p>{car.color}</p>
+          </div>
+        )}
+        {car.transmission && (
+          <div>
+            <p className="text-[11px] text-neutral-500">ミッション</p>
+            <p>{car.transmission}</p>
+          </div>
+        )}
+        {car.drive && (
+          <div>
+            <p className="text-[11px] text-neutral-500">駆動方式</p>
+            <p>{car.drive}</p>
+          </div>
+        )}
+        {car.displacementCc && (
+          <div>
+            <p className="text-[11px] text-neutral-500">排気量</p>
+            <p>{car.displacementCc.toLocaleString()} cc</p>
+          </div>
+        )}
+        {car.powerPs && (
+          <div>
+            <p className="text-[11px] text-neutral-500">最高出力</p>
+            <p>{car.powerPs} ps</p>
+          </div>
+        )}
+        {car.torqueNm && (
+          <div>
+            <p className="text-[11px] text-neutral-500">最大トルク</p>
+            <p>{car.torqueNm} Nm</p>
+          </div>
+        )}
+      </div>
+
+      {/* 装備などがあればここに追加 */}
+      {car.tags && car.tags.length > 0 && (
+        <InventoryTags tags={car.tags} />
+      )}
+    </section>
   );
 }
 
-type SpecRowProps = {
-  label: string;
-  value: string;
+type InventoryTagsProps = {
+  tags: string[];
 };
 
-function SpecRow({ label, value }: SpecRowProps) {
+function InventoryTags({ tags }: InventoryTagsProps) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="min-w-[88px] text-[11px] text-neutral-500 sm:min-w-[96px]">
-        {label}
-      </span>
-      <span className="flex-1 text-[12px] text-neutral-100 sm:text-sm">
-        {value}
-      </span>
+    <div className="pt-2">
+      <p className="mb-1 text-[11px] text-neutral-500">
+        キーワード
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-full border border-neutral-800 bg-black/60 px-2.5 py-0.5 text-[10px] text-neutral-300"
+          >
+            #{tag}
+          </span>
+        ))}
+      </div>
     </div>
+  );
+}
+
+// 詳細ギャラリー（メイン 内装 テール エンジンルーム）
+type DetailGalleryProps = {
+  main: string;
+  interior: string;
+  rear: string;
+  engine: string;
+  title: string;
+};
+
+"use client";
+
+import { useState } from "react";
+
+function DetailGallery({
+  main,
+  interior,
+  rear,
+  engine,
+  title,
+}: DetailGalleryProps) {
+  const [activeKey, setActiveKey] = useState<"main" | "interior" | "rear" | "engine">("main");
+
+  const images: { key: "main" | "interior" | "rear" | "engine"; label: string; src: string }[] = [
+    { key: "main", label: "MAIN", src: main },
+    { key: "interior", label: "INTERIOR", src: interior },
+    { key: "rear", label: "REAR", src: rear },
+    { key: "engine", label: "ENGINE", src: engine },
+  ];
+
+  const active = images.find((img) => img.key === activeKey) ?? images[0];
+
+  return (
+    <section className="space-y-3 rounded-2xl border border-neutral-800 bg-black/70 p-4 sm:p-5">
+      <h2 className="text-sm font-semibold text-neutral-100">
+        ディテールギャラリー
+      </h2>
+
+      {/* 画像表示エリア */}
+      <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950/80">
+        <div className="relative aspect-[4/3] w-full">
+          <Image
+            key={active.key}
+            src={active.src}
+            alt={`${title} ${active.label} 画像`}
+            fill
+            className="object-cover"
+            sizes="(min-width: 768px) 420px, 100vw"
+          />
+        </div>
+      </div>
+
+      {/* タブ（横スライド） */}
+      <div className="flex gap-2 overflow-x-auto pb-1 text-[11px]">
+        {images.map((img) => {
+          const isActive = img.key === activeKey;
+          return (
+            <button
+              key={img.key}
+              type="button"
+              onClick={() => setActiveKey(img.key)}
+              className={[
+                "min-w-[96px] rounded-full border px-3 py-1.5 transition",
+                isActive
+                  ? "border-red-500/80 bg-red-600/20 text-red-200"
+                  : "border-neutral-800 bg-neutral-950 text-neutral-300 hover:border-neutral-600",
+              ].join(" ")}
+            >
+              {img.label}
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }
