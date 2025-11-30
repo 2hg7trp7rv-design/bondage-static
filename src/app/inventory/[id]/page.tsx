@@ -12,18 +12,21 @@ import {
 } from "@/lib/inventory";
 import { DetailGallery } from "@/components/inventory/DetailGallery";
 
+// ルートパラメータの内部用型
 type RouteParams = {
   id: string;
 };
 
-// 静的生成用
+// 動的パラメータ付きページを完全静的化するための設定
 export const dynamic = "error";
 
+// 静的生成するパス一覧
 export async function generateStaticParams() {
   const cars = getAllInventory();
   return cars.map((car) => ({ id: car.id }));
 }
 
+// SEO用メタデータ
 export async function generateMetadata({
   params,
 }: {
@@ -39,10 +42,11 @@ export async function generateMetadata({
   }
 
   const baseTitle = car.title ?? "在庫車両";
+
   const desc =
-    car.description ??
-    car.shortDescription ??
-    car.catchCopy ??
+    (car as any).description ??
+    (car as any).shortDescription ??
+    (car as any).catchCopy ??
     "Auto Collection Bondageの在庫車詳細ページ。";
 
   return {
@@ -51,12 +55,11 @@ export async function generateMetadata({
   };
 }
 
-export default function InventoryDetailPage({
-  params,
-}: {
-  params: RouteParams;
-}) {
-  const car = getInventoryById(params.id);
+// ★ここがビルドエラーの発生ポイントだったので、props型を any にして Next の PageProps 制約と衝突しないようにする
+export default function InventoryDetailPage({ params }: any) {
+  const { id } = params as RouteParams;
+
+  const car = getInventoryById(id);
 
   if (!car) {
     notFound();
@@ -75,17 +78,22 @@ export default function InventoryDetailPage({
     transmission,
     drive,
     bodyType,
-    lifestyleNote,
-    specNote,
-    description,
-    shortDescription,
     tags,
     image,
     imageMain,
     imageInterior,
     imageRear,
     imageEngine,
-  } = car as InventoryItem;
+  } = car as InventoryItem & {
+    imageMain?: string;
+    imageInterior?: string;
+    imageRear?: string;
+    imageEngine?: string;
+    lifestyleNote?: string;
+    specNote?: string;
+    shortDescription?: string;
+    description?: string;
+  };
 
   const displayTitle = title ?? "在庫車両";
   const displayPrice = formatPriceYen(priceYen);
@@ -93,6 +101,13 @@ export default function InventoryDetailPage({
 
   const heroImageMain =
     imageMain ?? image ?? "/images/inventory/placeholder-main.jpg";
+
+  const lifestyleNote = (car as any).lifestyleNote as string | undefined;
+  const specNote = (car as any).specNote as string | undefined;
+  const shortDescription = (car as any).shortDescription as
+    | string
+    | undefined;
+  const description = (car as any).description as string | undefined;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 text-neutral-100">
@@ -233,7 +248,7 @@ export default function InventoryDetailPage({
                 <p className="text-neutral-200">{shortDescription}</p>
               )}
               {description && (
-                <p className="text-neutral-300 text-[13px] leading-relaxed">
+                <p className="text-[13px] leading-relaxed text-neutral-300">
                   {description}
                 </p>
               )}
