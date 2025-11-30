@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import {
   getAllInventory,
   getInventoryById,
-  type InventoryItem,
   formatMileageKm,
   formatPriceYen,
 } from "@/lib/inventory";
@@ -13,10 +12,6 @@ import { DetailGallery } from "@/components/inventory/DetailGallery";
 
 type RouteParams = {
   id: string;
-};
-
-type InventoryDetailPageProps = {
-  params: RouteParams;
 };
 
 // SSG用: /inventory/[id] の静的パスを生成
@@ -27,10 +22,10 @@ export function generateStaticParams(): RouteParams[] {
 }
 
 // SEO用メタデータ
-export function generateMetadata(
-  { params }: InventoryDetailPageProps
-): Metadata {
+export function generateMetadata(props: any): Metadata {
+  const params = props.params as RouteParams;
   const car = getInventoryById(params.id);
+
   if (!car) {
     return {
       title: "在庫車両が見つかりません | Auto Collection Bondage",
@@ -49,9 +44,8 @@ export function generateMetadata(
   };
 }
 
-export default function InventoryDetailPage({
-  params,
-}: InventoryDetailPageProps) {
+export default function InventoryDetailPage(props: any) {
+  const params = props.params as RouteParams;
   const car = getInventoryById(params.id);
 
   if (!car) {
