@@ -10,8 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const cars = getAllInventory();
-  const featured = cars[0];
+  // インベントリは UI 側では any として扱う（型不整合によるビルド失敗を防ぐ）
+  const cars = getAllInventory() as any[];
+  const featured = (cars[0] ?? null) as any;
 
   const featuredName =
     featured &&
@@ -26,9 +27,9 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#050507] text-neutral-50">
-      {/* ── HERO（紙の1枚目イメージ） ─────────────────────────── */}
+      {/* ── HERO：紙のラフ①イメージ ─────────────────────────── */}
       <section className="relative overflow-hidden">
-        {/* 背景写真（/public/images/hero.jpg を想定） */}
+        {/* 背景写真（/public/images/hero.jpg を想定。画像はあとで差し替え） */}
         <div className="pointer-events-none absolute inset-0">
           <div className="h-full w-full bg-[url('/images/hero.jpg')] bg-cover bg-center opacity-40" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/90 to-black" />
@@ -61,19 +62,19 @@ export default function HomePage() {
 
       {/* ── メインコンテンツ ─────────────────────────────── */}
       <div className="mx-auto flex max-w-5xl flex-col gap-10 px-4 pb-16 md:gap-12 md:pb-20">
-        {/* STOCK TOP（おすすめ在庫カード） */}
+        {/* STOCK TOP：おすすめ在庫カード */}
         <section className="mt-4">
           <div className="rounded-[32px] border border-red-900/60 bg-gradient-to-b from-black/80 via-black/90 to-black/90 p-[2px] shadow-[0_0_50px_rgba(248,113,113,0.4)]">
             <div className="rounded-[30px] bg-gradient-to-b from-[#141416] via-[#050507] to-[#141416] p-4 md:p-5">
               <div className="relative overflow-hidden rounded-[26px] border border-red-500/40 bg-black/70">
                 {/* 画像 */}
                 <div className="relative aspect-[16/10] w-full md:aspect-[16/9]">
-                  {featured && (featured as any).image ? (
+                  {featured && featured.image ? (
                     <>
                       <div
                         className="absolute inset-0 bg-cover bg-center brightness-[0.55]"
                         style={{
-                          backgroundImage: `url(${(featured as any).image})`,
+                          backgroundImage: `url(${featured.image})`,
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/10 to-black/85" />
@@ -94,10 +95,10 @@ export default function HomePage() {
                     {/* 下部 情報帯＋ボタン */}
                     {featured && (
                       <div className="mt-auto flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                        {/* 情報帯 */}
+                        {/* 情報帯（白枠＋薄い白背景） */}
                         <div className="inline-flex max-w-[70%] flex-col gap-2 rounded-2xl border border-white/55 bg-white/12 px-4 py-3 text-left text-black/90 backdrop-blur-sm md:max-w-[65%] md:px-5 md:py-3.5">
                           <div className="text-[11px] font-semibold tracking-[0.18em] text-neutral-900/70">
-                            BUGATTI
+                            {featured.maker?.toString().toUpperCase() ?? "STOCK"}
                           </div>
                           <div className="text-sm font-semibold md:text-base">
                             {featuredName ?? "在庫車を準備中"}
@@ -113,9 +114,9 @@ export default function HomePage() {
                               <>
                                 <span className="text-neutral-700">走行距離</span>
                                 <span>
-                                  {Number(featured.odometerKm).toLocaleString(
-                                    "ja-JP"
-                                  )}
+                                  {Number(
+                                    featured.odometerKm
+                                  ).toLocaleString("ja-JP")}
                                   km
                                 </span>
                               </>
@@ -129,7 +130,7 @@ export default function HomePage() {
                           </div>
                         </div>
 
-                        {/* 在庫車一覧ボタン */}
+                        {/* 在庫車一覧ボタン（赤塗りつぶし） */}
                         <div className="flex justify-end md:justify-center">
                           <Link
                             href="/inventory"
