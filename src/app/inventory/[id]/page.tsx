@@ -2,323 +2,183 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
 import {
   getAllInventory,
   getInventoryById,
+  type InventoryItem,
   formatMileageKm,
   formatPriceYen,
-  type InventoryItem,
 } from "@/lib/inventory";
 import { DetailGallery } from "@/components/inventory/DetailGallery";
 
-// ルートパラメータの内部用型
 type RouteParams = {
   id: string;
 };
 
-// 動的パラメータ付きページを完全静的化するための設定
-export const dynamic = "error";
+type InventoryDetailPageProps = {
+  params: RouteParams;
+};
 
-// 静的生成するパス一覧
-export async function generateStaticParams() {
-  const cars = getAllInventory();
-  return cars.map((car) => ({ id: car.id }));
+// SSG用: /inventory/[id] の静的パスを生成
+export function generateStaticParams(): RouteParams[] {
+  return getAllInventory().map((car) => ({
+    id: car.slug ?? car.id,
+  }));
 }
 
 // SEO用メタデータ
-export async function generateMetadata({
-  params,
-}: {
-  params: RouteParams;
-}): Promise<Metadata> {
+export function generateMetadata(
+  { params }: InventoryDetailPageProps
+): Metadata {
   const car = getInventoryById(params.id);
-
   if (!car) {
     return {
       title: "在庫車両が見つかりません | Auto Collection Bondage",
-      description: "指定された在庫車両は存在しません。",
+      description: "指定された在庫車両は現在登録されていません。",
     };
   }
 
-  const baseTitle = car.title ?? "在庫車両";
-
-  const desc =
-    (car as any).description ??
-    (car as any).shortDescription ??
-    (car as any).catchCopy ??
-    "Auto Collection Bondageの在庫車詳細ページ。";
+  const title = `${car.title} | Inventory | Auto Collection Bondage`;
+  const description =
+    car.description ??
+    `${car.maker ?? ""} ${car.model ?? ""}の在庫車両情報です。`.trim();
 
   return {
-    title: `${baseTitle} | Auto Collection Bondage`,
-    description: desc,
+    title,
+    description,
   };
 }
 
-// ★ここがビルドエラーの発生ポイントだったので、props型を any にして Next の PageProps 制約と衝突しないようにする
-export default function InventoryDetailPage({ params }: any) {
-  const { id } = params as RouteParams;
-
-  const car = getInventoryById(id);
+export default function InventoryDetailPage({
+  params,
+}: InventoryDetailPageProps) {
+  const car = getInventoryById(params.id);
 
   if (!car) {
     notFound();
   }
 
-  const {
-    title,
-    maker,
-    model,
-    year,
-    mileageKm,
-    priceYen,
-    color,
-    grade,
-    engine,
-    transmission,
-    drive,
-    bodyType,
-    tags,
-    image,
-    imageMain,
-    imageInterior,
-    imageRear,
-    imageEngine,
-  } = car as InventoryItem & {
-    imageMain?: string;
-    imageInterior?: string;
-    imageRear?: string;
-    imageEngine?: string;
-    lifestyleNote?: string;
-    specNote?: string;
-    shortDescription?: string;
-    description?: string;
-  };
-
-  const displayTitle = title ?? "在庫車両";
-  const displayPrice = formatPriceYen(priceYen);
-  const displayMileage = formatMileageKm(mileageKm);
-
-  const heroImageMain =
-    imageMain ?? image ?? "/images/inventory/placeholder-main.jpg";
-
-  const lifestyleNote = (car as any).lifestyleNote as string | undefined;
-  const specNote = (car as any).specNote as string | undefined;
-  const shortDescription = (car as any).shortDescription as
-    | string
-    | undefined;
-  const description = (car as any).description as string | undefined;
+  const priceLabel = formatPriceYen(car.priceYen);
+  const mileageLabel = formatMileageKm(car.mileageKm);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 text-neutral-100">
-      {/* パンくず＋戻るリンク */}
-      <div className="mb-4 flex items-center justify-between text-xs text-neutral-500">
-        <div className="flex flex-wrap items-center gap-1">
-          <Link
-            href="/"
-            className="rounded-full px-2 py-1 hover:bg-neutral-900 hover:text-neutral-100"
-          >
-            Home
-          </Link>
-          <span className="text-neutral-600">/</span>
-          <Link
-            href="/inventory"
-            className="rounded-full px-2 py-1 hover:bg-neutral-900 hover:text-neutral-100"
-          >
-            Inventory
-          </Link>
-          <span className="text-neutral-600">/</span>
-          <span className="text-neutral-400">{displayTitle}</span>
-        </div>
-
-        <Link
-          href="/inventory"
-          className="rounded-full border border-neutral-700 px-3 py-1 text-[11px] hover:border-neutral-500 hover:bg-neutral-900"
-        >
-          ← 一覧に戻る
+      {/* パンくず */}
+      <div className="mb-4 text-xs text-neutral-500">
+        <Link href="/" className="hover:text-neutral-200">
+          Home
         </Link>
+        <span className="mx-1">/</span>
+        <Link href="/inventory" className="hover:text-neutral-200">
+          Inventory
+        </Link>
+        <span className="mx-1">/</span>
+        <span className="text-neutral-300">{car.title}</span>
       </div>
 
-      {/* ヘッダー部 */}
-      <section className="mb-6 space-y-3">
-        <p className="text-[11px] uppercase tracking-[0.26em] text-neutral-500">
-          Auto Collection Bondage Inventory
-        </p>
-        <h1 className="text-2xl font-semibold leading-snug sm:text-3xl">
-          {displayTitle}
-        </h1>
-        <div className="flex flex-wrap gap-2 text-xs text-neutral-400">
-          {maker && (
-            <span className="rounded-full border border-neutral-700 px-3 py-1">
-              {maker}
-            </span>
-          )}
-          {model && (
-            <span className="rounded-full border border-neutral-700 px-3 py-1">
-              {model}
-            </span>
-          )}
-          {year && (
-            <span className="rounded-full border border-neutral-700 px-3 py-1">
-              {year}年式
-            </span>
-          )}
-          {bodyType && (
-            <span className="rounded-full border border-neutral-700 px-3 py-1">
-              {bodyType}
-            </span>
-          )}
-          {grade && (
-            <span className="rounded-full border border-neutral-700 px-3 py-1">
-              グレード:{grade}
-            </span>
-          )}
-        </div>
-      </section>
-
-      {/* メイン2カラム */}
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        {/* 画像ギャラリー */}
-        <div className="space-y-4">
+      <div className="grid gap-8 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        {/* 左: ギャラリー＋説明 */}
+        <section className="space-y-5">
           <DetailGallery
-            main={heroImageMain}
-            interior={imageInterior}
-            rear={imageRear}
-            engine={imageEngine}
-            alt={displayTitle}
+            main={car.imageMain ?? car.image ?? ""}
+            interior={car.imageInterior}
+            rear={car.imageRear}
+            engine={car.imageEngine}
+            alt={car.title}
           />
-        </div>
 
-        {/* スペックカード */}
-        <aside className="space-y-4">
-          <div className="rounded-3xl border border-neutral-800 bg-black/70 p-5 shadow-[0_0_40px_rgba(0,0,0,0.7)]">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
-              Condition Sheet
+          {car.description && (
+            <div className="rounded-3xl border border-neutral-800 bg-black/70 p-5 text-sm leading-relaxed text-neutral-200">
+              {car.description}
+            </div>
+          )}
+        </section>
+
+        {/* 右: スペック・価格・タグなど */}
+        <aside className="space-y-5">
+          <div className="rounded-3xl border border-neutral-800 bg-gradient-to-b from-black/90 via-black/80 to-neutral-950 p-5 shadow-[0_0_45px_rgba(0,0,0,0.7)]">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.26em] text-neutral-500">
+              Inventory Detail
             </p>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="text-xs text-neutral-400">車両本体価格</span>
-                <span className="text-lg font-semibold text-[#ecdab9]">
-                  {displayPrice}
-                </span>
+            <h1 className="mb-4 text-xl font-semibold leading-snug">
+              {car.title}
+            </h1>
+
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-neutral-400">価格</dt>
+                <dd className="font-semibold text-[#ecdab9]">
+                  {priceLabel}
+                </dd>
               </div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:text-[13px]">
-                <div>
-                  <p className="text-neutral-500">年式</p>
-                  <p className="text-neutral-100">
-                    {year ? `${year}年` : "確認中"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-neutral-500">走行距離</p>
-                  <p className="text-neutral-100">{displayMileage}</p>
-                </div>
-                <div>
-                  <p className="text-neutral-500">カラー</p>
-                  <p className="text-neutral-100">
-                    {color ?? "確認中"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-neutral-500">エンジン</p>
-                  <p className="text-neutral-100">
-                    {engine ?? "確認中"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-neutral-500">ミッション</p>
-                  <p className="text-neutral-100">
-                    {transmission ?? "確認中"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-neutral-500">駆動方式</p>
-                  <p className="text-neutral-100">
-                    {drive ?? "確認中"}
-                  </p>
-                </div>
+              <div className="flex justify-between">
+                <dt className="text-neutral-400">走行距離</dt>
+                <dd>{mileageLabel}</dd>
               </div>
+              {car.year && (
+                <div className="flex justify-between">
+                  <dt className="text-neutral-400">年式</dt>
+                  <dd>{car.year}年</dd>
+                </div>
+              )}
+              {car.color && (
+                <div className="flex justify-between">
+                  <dt className="text-neutral-400">ボディカラー</dt>
+                  <dd>{car.color}</dd>
+                </div>
+              )}
+              {car.engine && (
+                <div className="flex justify-between">
+                  <dt className="text-neutral-400">エンジン</dt>
+                  <dd className="text-right">{car.engine}</dd>
+                </div>
+              )}
+              {car.drive && (
+                <div className="flex justify-between">
+                  <dt className="text-neutral-400">駆動方式</dt>
+                  <dd>{car.drive}</dd>
+                </div>
+              )}
+              {car.transmission && (
+                <div className="flex justify-between">
+                  <dt className="text-neutral-400">トランスミッション</dt>
+                  <dd>{car.transmission}</dd>
+                </div>
+              )}
+              {car.tags && car.tags.length > 0 && (
+                <div className="pt-2">
+                  <dt className="mb-1 text-neutral-400">タグ</dt>
+                  <dd className="flex flex-wrap gap-1">
+                    {car.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-neutral-700 bg-black/50 px-2 py-0.5 text-[11px] text-neutral-300"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </dd>
+                </div>
+              )}
+            </dl>
+
+            <div className="mt-5 space-y-2 text-[11px] text-neutral-400">
+              <p>
+                この車両へのお問い合わせは、Instagram DMまたはお電話にてご連絡ください。
+              </p>
             </div>
           </div>
 
-          {/* ライフスタイル/メモ */}
-          {(shortDescription || description || lifestyleNote || specNote) && (
-            <div className="space-y-3 rounded-3xl border border-neutral-800 bg-black/60 p-5 text-sm">
-              {shortDescription && (
-                <p className="text-neutral-200">{shortDescription}</p>
-              )}
-              {description && (
-                <p className="text-[13px] leading-relaxed text-neutral-300">
-                  {description}
-                </p>
-              )}
-              {lifestyleNote && (
-                <div className="text-[12px] text-neutral-300">
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                    Lifestyle Note
-                  </p>
-                  <p className="leading-relaxed">{lifestyleNote}</p>
-                </div>
-              )}
-              {specNote && (
-                <div className="text-[12px] text-neutral-300">
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                    Spec Note
-                  </p>
-                  <p className="leading-relaxed">{specNote}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* タグ */}
-          {tags && tags.length > 0 && (
-            <div className="rounded-3xl border border-neutral-800 bg-black/60 p-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
-                Tags
+          {car.lifestyleNote && (
+            <div className="rounded-3xl border border-neutral-800 bg-black/70 p-4 text-[12px] leading-relaxed text-neutral-300">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
+                Lifestyle Note
               </p>
-              <div className="flex flex-wrap gap-2 text-[11px]">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-neutral-700 px-3 py-1 text-neutral-300"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
+              <p>{car.lifestyleNote}</p>
             </div>
           )}
         </aside>
-      </section>
-
-      {/* 下部の問い合わせ導線(ダミー) */}
-      <section className="mt-10 rounded-3xl border border-neutral-800 bg-gradient-to-r from-black via-black to-red-950/30 px-5 py-6 text-xs text-neutral-300 sm:px-7 sm:py-7">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
-              Contact
-            </p>
-            <p className="text-sm text-neutral-100">
-              この車両についての問い合わせや、似たキャラクターの1台を探す相談も受け付けています。
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              className="rounded-full border border-red-700/80 bg-red-700/20 px-4 py-2 text-[11px] font-semibold text-[#ecdab9] shadow-[0_0_30px_rgba(220,38,38,0.55)] transition hover:bg-red-600/40"
-            >
-              LINEで相談する(ダミー)
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-neutral-700 bg-black/70 px-4 py-2 text-[11px] font-semibold text-neutral-200 hover:border-neutral-500 hover:bg-neutral-900"
-            >
-              メールフォーム(準備中)
-            </button>
-          </div>
-        </div>
-      </section>
+      </div>
     </main>
   );
 }
