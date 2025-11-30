@@ -26,11 +26,20 @@ export default function HomePage() {
         .join(" ")
     : "在庫車トップ";
 
-  // TOP 2 枚目で使う画像（なければ hero.jpg）
+  // 2枚目で使う画像（なければ hero.jpg）
   const featuredImage =
     (featured as any)?.mainImage ??
     (featured as any)?.image ??
     "/images/hero.jpg";
+
+  // 説明文：在庫データに shortDescription があれば優先
+  const featuredDescription: string | undefined =
+    (featured as any)?.shortDescription ??
+    (featured
+      ? [featured.maker, featured.model]
+          .filter((v): v is string => Boolean(v))
+          .join(" ")
+      : undefined);
 
   return (
     <main className="relative min-h-screen bg-[#050507] text-neutral-50">
@@ -118,9 +127,9 @@ export default function HomePage() {
               )}
             </div>
 
-            {featured?.shortDescription && (
+            {featuredDescription && (
               <p className="max-w-2xl text-[12px] leading-relaxed text-neutral-200/90 md:text-[13px]">
-                {featured.shortDescription}
+                {featuredDescription}
               </p>
             )}
 
