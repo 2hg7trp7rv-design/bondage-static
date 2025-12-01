@@ -56,14 +56,11 @@ export default function InventoryDetailPage(props: any) {
   const mileageLabel = formatMileageKm(car.mileageKm);
 
   return (
-    <main className="min-h-screen bg-[#050506] text-neutral-100">
-      {/* ページ共通の左右余白コンテナ */}
-      <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8 md:px-6">
+    <main className="flex justify-center px-4 py-8 text-neutral-100">
+      {/* 中央寄せコンテナ（左右バランス用） */}
+      <div className="w-full max-w-5xl">
         {/* パンくず */}
-        <nav
-          aria-label="パンくずリスト"
-          className="mb-4 text-xs text-neutral-500"
-        >
+        <div className="mb-4 text-xs text-neutral-500">
           <Link href="/" className="hover:text-neutral-200">
             Home
           </Link>
@@ -73,13 +70,14 @@ export default function InventoryDetailPage(props: any) {
           </Link>
           <span className="mx-1">/</span>
           <span className="text-neutral-300">{car.title}</span>
-        </nav>
+        </div>
 
-        {/* 上段: ギャラリー+詳細カード */}
+        {/* メインレイアウト */}
         <div className="grid gap-8 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           {/* 左: ギャラリー＋説明 */}
           <section className="space-y-5">
-            <div className="rounded-[32px] border border-neutral-800 bg-gradient-to-b from-neutral-900 via-black to-neutral-900 p-3 md:p-4">
+            {/* ギャラリー全体をカードで囲んで左右のラインを揃える */}
+            <div className="rounded-3xl border border-neutral-800 bg-black/80 p-3 md:p-4">
               <DetailGallery
                 main={car.imageMain ?? car.image ?? ""}
                 interior={car.imageInterior}
@@ -98,7 +96,7 @@ export default function InventoryDetailPage(props: any) {
 
           {/* 右: スペック・価格・タグなど */}
           <aside className="space-y-5">
-            <section className="rounded-3xl border border-neutral-800 bg-gradient-to-b from-black/90 via-black/80 to-neutral-950 p-5 shadow-[0_0_45px_rgba(0,0,0,0.7)]">
+            <div className="rounded-3xl border border-neutral-800 bg-gradient-to-b from-black/90 via-black/80 to-neutral-950 p-5 shadow-[0_0_45px_rgba(0,0,0,0.7)]">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.26em] text-neutral-500">
                 Inventory Detail
               </p>
@@ -169,15 +167,15 @@ export default function InventoryDetailPage(props: any) {
                   この車両へのお問い合わせは、Instagram DMまたはお電話にてご連絡ください。
                 </p>
               </div>
-            </section>
+            </div>
 
             {car.lifestyleNote && (
-              <section className="rounded-3xl border border-neutral-800 bg-black/70 p-4 text-[12px] leading-relaxed text-neutral-300">
+              <div className="rounded-3xl border border-neutral-800 bg-black/70 p-4 text-[12px] leading-relaxed text-neutral-300">
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
                   Lifestyle Note
                 </p>
                 <p>{car.lifestyleNote}</p>
-              </section>
+              </div>
             )}
           </aside>
         </div>
